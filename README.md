@@ -4,6 +4,10 @@ A parametric OpenSCAD enclosure for the **Heltec WiFi LoRa 32 V4** (ESP32-S3 + S
 
 ![The default Heltec V4 case in OpenSCAD: base tray and lid with the OLED window, in the exploded "both" preview, with the Customizer panel exposing every adjustable group](Overview.png)
 
+<img src="HeltecBoard.jpg" width="320" alt="A Heltec WiFi LoRa 32 V4 board — the hardware this case is built for">
+
+*The board it's built for: a Heltec WiFi LoRa 32 V4 (ESP32-S3 + SX1262).*
+
 **Source / latest version:** https://github.com/magikh0e/heltec-v4-case-generator
 
 **Also on Cults3D:** https://cults3d.com/en/users/magikh0e/3d-models
