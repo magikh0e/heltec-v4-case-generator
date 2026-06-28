@@ -4,6 +4,8 @@ A parametric OpenSCAD enclosure for the **Heltec WiFi LoRa 32 V4** (ESP32-S3 + S
 
 **Source / latest version:** https://github.com/magikh0e/heltec-v4-case-generator
 
+**Also on Cults3D:** https://cults3d.com/en/users/magikh0e/3d-models
+
 > Dimensions come from the published V4 product manual and the geometry is verified manifold, but port offsets vary and tolerances differ by printer. The connector row is the high-risk area, so always run the fit-checker (section 5) before a full print.
 
 ---
