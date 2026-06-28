@@ -1,0 +1,12 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# OpenSCAD backups
+*.bak
+*.scad.bak
+
+# Slicer project files (STL exports are tracked)
+*.3mf
+*.gcode

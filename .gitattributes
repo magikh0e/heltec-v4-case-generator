@@ -1,0 +1,4 @@
+# STL/3MF exports stored as-is (no EOL conversion) so they stay byte-identical
+# on every platform and match the copies hosted on magikh0e.pl.
+*.stl -text
+*.3mf -text
