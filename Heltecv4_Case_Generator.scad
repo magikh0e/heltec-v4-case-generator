@@ -14,17 +14,18 @@
 part = "both";   // ["base","lid","lid_snap","lid_screw","both","all_lids","oled_cover"]
 explode = 8;     // visual gap when part=="both"
 
-/* [Board] — Heltec WiFi LoRa 32 V4 */
+/* [Board] — Heltec WiFi LoRa 32 V4 (verified against V4.2 dimensional drawing) */
 board_x        = 51.7;   // length (datasheet 51.69mm)
 board_y        = 25.4;   // width  (datasheet 25.40mm)
 board_thick    = 1.6;
-// V4 tallest point ~15.6mm incl. OLED bracket. Standoff lifts PCB off the floor
-// to clear bottom headers/GNSS connector solder.
+// V4 component stack is 10.70mm above the PCB (datasheet + side-view drawing).
 standoff_h     = 4;
 
-// V4 uses M2 corner mounting holes. Inset measured from PCB edges — VERIFY.
-hole_inset_x   = 2.5;
-hole_inset_y   = 2.5;
+// M2 mounting holes — measured hole-to-hole spans (confirmed against the board):
+//   along the 51.69 length: 33.00mm hole-to-hole (centered)
+//   across the 25.40 width:  18.60mm hole-to-hole
+hole_span_x    = 33.00;  // hole-to-hole along board length
+hole_span_y    = 14.00;  // hole-to-hole across board width (datasheet p16)
 screw_hole_d   = 1.8;    // M2 self-tap pilot in plastic
 post_d         = 4.5;    // standoff post OD (M2)
 
@@ -33,21 +34,31 @@ wall           = 2.0;
 floor_t        = 2.0;
 lid_t          = 2.0;
 clr            = 0.4;    // gap around PCB
-// Headroom above PCB. OLED + bracket is the tall part (~10mm above PCB).
-comp_clear     = 12;
+// Headroom above PCB. Real V4 stack (incl. OLED) is 10.70mm; +margin.
+comp_clear     = 11.5;
 
 /* [Connector row] — all along one LONG edge (the "front") */
-// Edge the USB-C / buttons face. V4 row order L->R: USER, USB-C, RST, LEDs, JSTs.
-front_edge     = "y0";        // ["y0","y1"] long edge with the connector row
-// X positions measured from PCB origin (the board's left end). VERIFY THESE.
-usbc_x         = 14;          // USB-C center X
+/* [Connectors] — from the V4.2 drawing, USB-C + JSTs are on a SHORT end */
+// USB-C sits on a short end of the board. usbc_pos locates it across the width (board_y),
+// usbc_z is the connector CENTER height above the PCB top (side-view drawing: ~5.5mm).
+conn_edge      = "x0";        // ["x0","x1"] which short end the connectors face
+usbc_pos       = board_y/2 + 3.1;  // across-width position (drawing: 15.81 from edge -> +3.1 off center)
 usbc_w         = 9.5;         // opening width
-usbc_h         = 4.0;         // opening height (V4 USB-C ~3.2 + margin)
-usbc_z         = 1.0;         // bottom of port above PCB top surface
+usbc_h         = 3.5;         // opening height (V4 USB-C ~3.2 + margin)
+usbc_z         = 5.5;         // USB-C connector CENTER height above PCB top (side view)
 
-usrbtn_x       = 6;           // USER button center X (0 to disable)
-rstbtn_x       = 22;          // RST button center X (0 to disable)
-btn_d          = 3.5;         // pin-poke hole for the buttons
+// Two SH1.25 JSTs on the same short end, near the USB-C.
+jst_enable     = true;
+jst_w          = 5.0;         // JST lead slot width
+jst_h          = 4.0;         // JST lead slot height
+jst1_pos       = board_y/2 - 1.5;  // solar JST across-width position
+jst2_pos       = board_y/2 + 7.5;  // battery JST
+jst_z          = 2.0;         // JST lead height above PCB
+
+// Buttons (USER/RST) also on this short end — poke holes, optional.
+btn_d          = 3.5;         // pin-poke hole for the buttons (0 to disable)
+btn1_pos       = board_y/2 - 7;
+btn2_pos       = board_y/2 + 7;
 
 /* [LoRa antenna] */
 // V4 LoRa antenna is IPEX1.0. Default: SMA bulkhead hole so you run a u.FL->SMA
@@ -59,12 +70,11 @@ ant_pos        = board_y/2;   // position along that edge
 ant_z          = 3;           // height of hole center above PCB top
 
 /* [OLED window] */
-// V4 has a 0.96" OLED on TOP under a plastic bracket. Toggle a lid window.
+// V4 0.96" OLED, active area 22.00 x 11.40mm (from the V4.2 drawing). Toggle a lid window.
 oled_window    = true;        // true = cutout to see screen; false = solid lid
-// OLED active-area footprint & position on the PCB (from PCB origin). VERIFY.
-oled_w         = 26;          // window width  (X)
-oled_h         = 15;          // window height (Y)
-oled_cx        = 33;          // window center X on the board
+oled_w         = 22.0;        // window width  (X, along board length)
+oled_h         = 11.4;        // window height (Y, across board width)
+oled_cx        = board_x*0.62; // window center X (OLED sits toward the non-USB end) — VERIFY
 oled_cy        = board_y/2;   // window center Y
 oled_recess    = true;        // sink a ledge so a clear cover sits flush
 oled_ledge     = 1.5;         // ledge width around the window for the cover to rest on
@@ -128,11 +138,15 @@ lid_z  = inner_z - standoff_h - board_thick + lid_t;
 eps = 0.01;
 $fn = 48;
 
-hx0 = clr + hole_inset_x;
-hx1 = clr + board_x - hole_inset_x;
-hy0 = clr + hole_inset_y;
-hy1 = clr + board_y - hole_inset_y;
-holes = [[hx0,hy0],[hx1,hy0],[hx0,hy1],[hx1,hy1]];
+// M2 hole positions: centered rectangle, 33.00 x 18.60 hole-to-hole.
+// In PCB coordinates [0..board_x] x [0..board_y]; clr offsets into the cavity.
+hcx = clr + board_x/2;
+hcy = clr + board_y/2;
+hxa = hcx + hole_span_x/2;   // +x column
+hxb = hcx - hole_span_x/2;   // -x column
+hy_hi = hcy + hole_span_y/2;
+hy_lo = hcy - hole_span_y/2;
+holes = [[hxb,hy_lo],[hxa,hy_lo],[hxb,hy_hi],[hxa,hy_hi]];
 
 // ============================================================
 // primitives
@@ -160,6 +174,13 @@ module hole_cut_long(edge, cx, d, z_above_pcb){
     xc = wall + clr + cx;
     if(edge=="y0") translate([xc, wall+eps, zc]) rotate([90,0,0]) cylinder(d=d, h=wall+2*eps, center=true);
     if(edge=="y1") translate([xc, out_y-wall-eps, zc]) rotate([-90,0,0]) cylinder(d=d, h=wall+2*eps, center=true);
+}
+// rectangular port cut through a SHORT wall (x0/x1), centered at board-Y = cy
+module port_cut_short(edge, cy, w, h, z_above_pcb){
+    zc = floor_t + standoff_h + board_thick + z_above_pcb;
+    yc = wall + clr + cy;
+    if(edge=="x0") translate([-eps, yc - w/2, zc]) cube([wall+2*eps, w, h]);
+    if(edge=="x1") translate([out_x-wall-eps, yc - w/2, zc]) cube([wall+2*eps, w, h]);
 }
 // round hole through a SHORT wall (x0/x1)
 module hole_cut_short(edge, cy, d, z_above_pcb){
@@ -308,11 +329,20 @@ module base(){
             lanyard_tab();
             battery_shelf();
         }
-        port_cut_long(front_edge, usbc_x, usbc_w, usbc_h, usbc_z);
-        if(usrbtn_x>0) hole_cut_long(front_edge, usrbtn_x, btn_d, usbc_z+usbc_h/2);
-        if(rstbtn_x>0) hole_cut_long(front_edge, rstbtn_x, btn_d, usbc_z+usbc_h/2);
+        // USB-C on the short end (drawing-verified position/height)
+        port_cut_short(conn_edge, usbc_pos, usbc_w, usbc_h, usbc_z - usbc_h/2);
+        // two SH1.25 JSTs on the same short end
+        if(jst_enable){
+            port_cut_short(conn_edge, jst1_pos, jst_w, jst_h, jst_z - jst_h/2);
+            port_cut_short(conn_edge, jst2_pos, jst_w, jst_h, jst_z - jst_h/2);
+        }
+        // optional button poke-holes on the same short end
+        if(btn_d>0){
+            hole_cut_short(conn_edge, btn1_pos, btn_d, usbc_z);
+            hole_cut_short(conn_edge, btn2_pos, btn_d, usbc_z);
+        }
+        // LoRa antenna (SMA bulkhead on a chosen wall, or internal)
         if(ant_mode=="sma") hole_cut_short(ant_edge, ant_pos, ant_d, ant_z);
-        pigtail_cut();
         base_snap_recesses();
         vents();
     }
